@@ -6,7 +6,8 @@ from time import sleep
 font.init()
 font1 = font.Font(None, 36)
 bigfont = font.Font(None, 60)
-
+player_1_score = 0
+player_2_score = 0
 h = 600
 w = 1200
 window = display.set_mode((w, h))
@@ -100,16 +101,50 @@ def sprites_load(folder, file_name, size, colorkey):
     return sprites
 
 class Ball(GameSprite):
-    def __init__(self, player_image,player_speed, player_x = w/2, player_y= h/2, w = 50, h = 50,):
+    def __init__(self, player_image,player_speed, player_x = w/2, player_y= h/2, w = 50, h = 50, pause = 0):
         self.image = transform.scale(image.load(player_image).convert_alpha(), (w, h))
-        self.player_speed = player_speed
+        self.player_speed_x = player_speed
+        self.player_speed_y = player_speed
         self.rect = self.image.get_rect()
         self.rect.x = player_x
         self.rect.y = player_y
-    
-    def update(self):
-        self.rect.x += self.player_speed
-        self.rect.y += self.player_speed
+        self.pause = pause
+
+    def update(self, player_x = w/2, player_y = h/2):
+        if self.rect.y < 0 or self.rect.y > h- 50:
+            self.player_speed_y = 0 - self.player_speed_y
+        self.rect.x += self.player_speed_x
+        self.rect.y += self.player_speed_y
+        global player_1_score, player_2_score, cont
+        
+        if self.rect.x < 0:
+            window.blit(cont, (200, h/2))
+            if self.pause == 0:
+                player_2_score += 1
+                self.pause = 1
+                
+            for e in event.get():
+                if e.type == KEYDOWN:
+                    if e.key == K_SPACE:
+                        self.rect.x = player_x
+                        self.rect.y = player_y
+                        self.pause = 0
+                        
+        if self.rect.x > w:
+            window.blit(cont, (200, h/2))
+            if self.pause == 0:
+                player_1_score += 1
+                self.pause = 1
+
+            for e in event.get():
+                if e.type == KEYDOWN:
+                    if e.key == K_SPACE:
+                        self.rect.x = player_x
+                        self.rect.y = player_y
+                        self.pause = 0
+                        
+    def rocket_c(self):
+        self.player_speed_x = 0 - self.player_speed_x
 
 
 
@@ -124,9 +159,9 @@ background = transform.scale(image.load('table.jpg'), (w, h))
 #kick = mixer.Sound('fire.ogg')
 #shotsound = mixer.Sound('shot.ogg')
 
-left_lox = Hero('rocket.png', 0, h/2 , 10, 80, 100, 'left')
-right_lox = Hero('rocket.png', w - 75, h/2 , 10, 80, 100, 'right')
-ball = Ball('ball.png', 5)
+left_lox = Hero('rocket.png', 50, h/2 , 10, 80, 100, 'left')
+right_lox = Hero('rocket.png', w - 125, h/2 , 10, 80, 100, 'right')
+ball = Ball('ball.png', 20)
 
 
 clock = time.Clock()
@@ -135,6 +170,7 @@ play = True
 
 finish = False
 win = False
+
 while play:
     
     for e in event.get():
@@ -150,17 +186,24 @@ while play:
     
     if not finish:
         window.blit(background, (0, 0))
+        cont = bigfont.render('Нажмите ПРОБЕЛ чтобы продолжить', True, (255, 0, 0))
+        score = font1.render(f'счёт: {player_1_score} : {player_2_score}', True, (255, 0, 0))
+        window.blit(score, (0, 0))
         left_lox.update()
         left_lox.reset()
         right_lox.update()
         right_lox.reset()
+        ball.reset()
+        ball.update()
+        if sprite.collide_rect(left_lox, ball) or sprite.collide_rect(right_lox, ball):
+            ball.rocket_c()
 
 
         
             
             
             
-        
-        display.update()
         ticks += 1
+    display.update()
+        
     clock.tick(60)
