@@ -129,6 +129,8 @@ class Ball(GameSprite):
                         self.rect.x = player_x
                         self.rect.y = player_y
                         self.pause = 0
+                        self.player_speed_x = 5
+                        self.player_speed_y = 5
                         
         if self.rect.x > w:
             window.blit(cont, (200, h/2))
@@ -142,9 +144,15 @@ class Ball(GameSprite):
                         self.rect.x = player_x
                         self.rect.y = player_y
                         self.pause = 0
+                        self.player_speed_x = 5
+                        self.player_speed_y = 5
                         
     def rocket_c(self):
         self.player_speed_x = 0 - self.player_speed_x
+
+    def faster(self):
+        self.player_speed_x = self.player_speed_x * 1.001
+        self.player_speed_y = self.player_speed_y * 1.001
 
 
 
@@ -161,7 +169,7 @@ background = transform.scale(image.load('table.jpg'), (w, h))
 
 left_lox = Hero('rocket.png', 50, h/2 , 10, 80, 100, 'left')
 right_lox = Hero('rocket.png', w - 125, h/2 , 10, 80, 100, 'right')
-ball = Ball('ball.png', 20)
+ball = Ball('ball.png', 2)
 
 
 clock = time.Clock()
@@ -197,6 +205,9 @@ while play:
         ball.update()
         if sprite.collide_rect(left_lox, ball) or sprite.collide_rect(right_lox, ball):
             ball.rocket_c()
+
+        
+        ball.faster()
 
 
         
